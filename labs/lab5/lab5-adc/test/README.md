@@ -1,11 +1,26 @@
+# Lab 5: MARIAN DVOŘÁČEK
 
-This directory is intended for PlatformIO Test Runner and project tests.
+### Analog-to-Digital Conversion
 
-Unit Testing is a software testing method by which individual units of
-source code, sets of one or more MCU program modules together with associated
-control data, usage procedures, and operating procedures, are tested to
-determine whether they are fit for use. Unit testing finds problems early
-in the development cycle.
+1. Complete table with voltage divider, calculated, and measured ADC values for all five push buttons.
 
-More information about PlatformIO Unit Testing:
-- https://docs.platformio.org/en/latest/advanced/unit-testing/index.html
+   | **Push button** | **PC0 voltage** | **ADC value (calculated)** | **ADC value (measured)** | **ADC value (measured, hex)** |
+   | :-: | :-: | :-: | :-: | :-: |
+   | Right  | 0&nbsp;V | 0   | 0 | 0 |
+   | Up     | 0.495&nbsp;V | 101 | 99 | 63 |
+   | Down   | 1.203&nbsp;V | 246 | 257 | 101 |
+   | Left   | 2.468&nbsp;V | 505 | 410 | 19A |
+   | Select | 3.620&nbsp;V | 741 | 640 | 280 |
+   | none   | 5.000&nbsp;V | 1023 | 1023 | 3FF |
+
+### Temperature meter
+
+Consider an application for temperature measurement. Use analog temperature sensor [TC1046](http://ww1.microchip.com/downloads/en/DeviceDoc/21496C.pdf), LCD, and a LED. Every 30 seconds, the temperature is measured and the value is displayed on LCD screen. When the temperature is too high, the LED will turn on.
+
+2. Draw a schematic of temperature meter. The image can be drawn on a computer or by hand. Always name all components, their values and pin names!
+
+   ![your figure]()
+
+3. Draw two flowcharts for interrupt handler `TIMER1_OVF_vect` (which overflows every 1&nbsp;sec) and `ADC_vect`. The image can be drawn on a computer or by hand. Use clear descriptions of individual algorithm steps.
+
+   ![your figure]()
