@@ -74,15 +74,20 @@ ISR(TIMER1_OVF_vect)
     if (value != '\0') {  // Data available from UART
         // Display ASCII code of received character
         // WRITE YOUR CODE HERE
-        uart_puts("Send char:");
+        uart_puts("Send char: ");
         uart_putc(value);
-
         uart_puts("\tdec");
         itoa(value, string, 10);
-        uart_puts(value);
-        uart_puts('\r\n');
-
-        itoa(value, string, 10);
-        uart_puts(value);
+        uart_puts(" ");
+        uart_puts(string);
+        uart_puts("\thex");
+        itoa(value, string, 16);
+        uart_puts(" ");
+        uart_puts(string);
+        uart_puts("\tbin");
+        itoa(value, string, 2);
+        uart_puts(" ");
+        uart_puts(string);
+        uart_putc('\n');
     }
 }
