@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"name": "Test5",
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"arduino.h": "c",
+			"interrupt.h": "c"
+		}
+	}
+}
