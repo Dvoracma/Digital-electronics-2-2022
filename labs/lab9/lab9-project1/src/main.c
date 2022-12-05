@@ -177,7 +177,7 @@ ISR(ADC_vect)
             lcd_clrscr();                           // Clear LCD display
             _delay_ms(50);
                                                     // Incrementing LINE by 1
-            if (line < 16)                          // Condition of movement on a row to the right
+            if (line < 15)                          // Condition of movement on a row to the right
             {
                 line++;
                 lcd_gotoxy(line, column);
@@ -221,7 +221,7 @@ ISR(ADC_vect)
             lcd_clrscr();
             _delay_ms(50);
                                                     // Incrementing COLUMN by 1. Actually LCD has just 2 columns, which is 0 and 1
-            if (column < 2)                         // Condition if we are changing column on LCD
+            if (column < 1)                         // Condition if we are changing column on LCD
             {
                 column++;
                 lcd_gotoxy(line, column);
