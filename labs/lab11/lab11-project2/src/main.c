@@ -4,23 +4,19 @@
 #include "timer.h"          // Timer library for AVR-GCC
 #include <stdlib.h>         // C library. Needed for number conversions
 #include <lcd.h>            // Peter Fleury's LCD library
-#include <uart.h>           // Peter Fleury's UART library
 #include <util/delay.h>     // Functions for busy-wait delay loops
-#include <string.h>         //standard library for strings
-
+#include <string.h>         // Standard library for strings
 
 #define SW   PD2            // Pin D2  - Digital pin for button on Joystick
 #define LED  PB5            // Pin D13 - LED indicate
 #define PINX PC0            // Pin A0  - Analog pin for X coordinate of Joystick
 #define PINY PC1            // Pin A1  - Analog pin for Y coordinate of Joystick
 
-// global variables
-
 //PWM limit values
-const uint16_t min_servo_v = 61; // min PWM value for vertical servo
-const uint16_t min_servo_h = 61; // min PWM value for horizontal servo
-const uint16_t max_servo_v = 126; // max PWM value for vertical servo
-const uint16_t max_servo_h = 126; // max PWM value for horizontal servo
+const uint16_t min_servo_v = 16; // min PWM value for vertical servo
+const uint16_t min_servo_h = 16; // min PWM value for horizontal servo
+const uint16_t max_servo_v = 74; // max PWM value for vertical servo
+const uint16_t max_servo_h = 74; // max PWM value for horizontal servo
 
 const uint16_t min_v_servo_angle = 0; // min angle of vertical servo in deegrees
 const uint16_t max_v_servo_angle = 180; // max angle of vertical servo in deegrees
@@ -62,9 +58,7 @@ uint16_t convertAngleToDeegrees(uint16_t PWM_value, uint16_t PWM_min_value, uint
     else
     {
         convertedAngle = max_angle_of_servo;
-    }
-    
-    
+    }       
     return (uint16_t) round(convertedAngle);
 }
 
@@ -84,11 +78,11 @@ int main(void)
     servo_v = min_servo_v;                           // init PWM value for vartical servo
     servo_h = min_servo_h;                           // init PWM value for horizontal servo
 
-    // uart_init(UART_BAUD_SELECT(9600, F_CPU));       // Initialize USART to asynchronous, 8N1, 9600
-    lcd_init(LCD_DISP_ON);                          // Initialize LCD display without any cursor
+    // Initialize LCD display without any cursor
+    lcd_init(LCD_DISP_ON);                          
     lcd_gotoxy(0,0);
 
-    // lcd init
+    // Primary inscription on the LCD
     lcd_puts("ANGLE V: 0 deg");
     lcd_gotoxy(0,1);
     lcd_puts("ANGLE H: 0 deg");
@@ -111,27 +105,25 @@ int main(void)
     ADCSRA |= ((1<<ADPS0) | (1<<ADPS1) | (1<<ADPS2));    
     
     // Configure 16-bit Timer/Counter1 to start ADC conversion
-    // Set prescaler to 33 ms and enable overflow interrupt
-    TIM2_overflow_16ms();                      
-    TIM2_overflow_interrupt_enable(); 
+    // Enable overflow interrupt                      
+    TIM1_overflow_interrupt_enable(); 
 
-    //PWM settings
+    // PWM settings
     // reset timer settings
     TCCR1A = 0;
     TCCR1B = 0;
-    // set PWM pin as output
+    // set PWM pin as output (D9 and D10)
     DDRB |= (1<<PB2) | (1<<PB1);
     // set timer mode Phase Correct PWM, 10 bit
     TCCR1A &= ~(1<<WGM13)| (1<<WGM12); TCCR1A |= (1<<WGM11) | (1<<WGM10);       // Phase Correct PWM 10 bit with TOP=0x03FF
     // set output mode
     TCCR1A |= (1<<COM1A1);                  // non-inverting mode for OCR1A
     TCCR1A |= (1<<COM1B1);                  // non-inverting mode for OCR1B
-    // set prescaller
-    TCCR1B &= ~((1<<CS11) | (1<<CS10)); TCCR1B |= (1<<CS12);        // 256          
+    // set prescaller to 256
+    TCCR1B &= ~((1<<CS11) | (1<<CS10)); TCCR1B |= (1<<CS12);                  
    
     // Enables interrupts by setting the global interrupt mask
     sei();
-
     
     // Infinite loop
     while (1)       
@@ -149,10 +141,9 @@ int main(void)
  * Purpose:  Use single conversion mode and start conversion every 100 ms.
  **********************************************************************/
 
-ISR(TIMER2_OVF_vect)
+ISR(TIMER1_OVF_vect)
 {
-    ADCSRA |= (1<<ADSC);                             // Start ADC conversion 
-                                   
+    ADCSRA |= (1<<ADSC);                             // Start ADC conversion                                    
 }
 
 /**********************************************************************
@@ -169,20 +160,28 @@ ISR(ADC_vect)
         
     uint16_t value;                                 // Constant which shows 2 direction for ADC (0-1024)          | uint16_t range is 0 to 32 767
     char angle[3];                                  // Constant which shows angle string on LCD
-    //char string[4];                               // String for converted numbers by itoa() | ADC conversion
-    //char str[4];
     
     if (!GPIO_read(&PIND, SW))                      // Joystick button reading condition
     {
         GPIO_write_high(&PORTB, LED);               // Turning on the LED (just indicate that button is pressed)
+        lcd_gotoxy(9,0);                            // show vertical angle on LCD
+        lcd_puts("       ");
+        lcd_gotoxy(9,0);
+        servo_v = 45;
+        itoa(convertAngleToDeegrees(servo_v, min_servo_v, max_servo_v, min_v_servo_angle, max_v_servo_angle), angle, 10);
+        lcd_puts(strcat(angle, " deg"));
+        lcd_gotoxy(9,1);                            // show horizontal angle on LCD
+        lcd_puts("       ");
+        lcd_gotoxy(9,1);
+        servo_h = 45;
+        itoa(convertAngleToDeegrees(servo_h, min_servo_h, max_servo_h, min_h_servo_angle, max_h_servo_angle), angle, 10);
+        lcd_puts(strcat(angle, " deg"));
     }
 
     switch (ADMUX)                                  // Important condition, which needs to define ports between ADC0 and ADC1 for ADC Conversion (it's all a last digit) 
     {
         case 0b01000000:                            // Turning on the port ADC0 that has amount 0100 0000        
-        value = ADC;                                // Read converted value
-
-        //itoa(value, string, 10);                  // Convert VALUE to STRING at Decimal 
+        value = ADC;                                // Read converted value            
         if (value > 900)                            // Condition if we are moving to the Right side on LCD
         {
             GPIO_write_high(&PORTB, LED);           // Turning on the LED
@@ -211,18 +210,11 @@ ISR(ADC_vect)
                 lcd_puts(strcat(angle, " deg"));                                        
             }            
         }
-        ADMUX = 0b01000001;                         // At the end of the loop, change port ADC0 to ADC1
-
-        //itoa(line, str, 10);                      // Convert LINE to STR at Decimal
-        //uart_puts("Line is: ");                   // Write on UART
-        //uart_puts(str);                           // Display the row on UART        
+        ADMUX = 0b01000001;                         // At the end of the loop, change port ADC0 to ADC1            
         break;                                      // Stop the first condition of CASE
-
-
+            
         case 0b01000001:                            // Turning on the port ADC1 that has amount 0100 0001
         value = ADC;                                // Read converted value
-       
-        //itoa(value, string, 10);   
         if (value > 900)                            
         {
             GPIO_write_high(&PORTB, LED);           // Turning on the LED
@@ -251,11 +243,6 @@ ISR(ADC_vect)
             }
         }        
         ADMUX = 0b01000000;                         // Again change port from ADC1 to ADC0
-
-        //itoa(column, str, 10);
-        //uart_puts("      Column is: ");
-        //uart_puts(str);                           // Display the column on UART
-        //uart_puts(" \r\n");                       // Go to the new line and move the cursor in the beginning position of line
         break;                                      // Stop the second condition of CASE
 
         default:                                    // Each case should have the default condition which is empty
